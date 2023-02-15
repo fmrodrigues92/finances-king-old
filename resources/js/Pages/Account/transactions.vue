@@ -9,13 +9,22 @@ defineProps({
 });
 
 //array from 2022 to 2050
-const years = Array.from({ length: 29 }, (v, k) => k + 2022);
+const years = Array.from({ length: 10 }, (v, k) => k + 2022);
+
+//array from jan to dec
+const months = Array.from({ length: 12 }, (v, k) => k + 1);
+
 
 //current mount
 const currentMonth = new Date().getMonth() + 1;
 
 //current year
 const currentYear = new Date().getFullYear();
+
+//capitalize first letter
+const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 //====================
 //====================
@@ -52,25 +61,16 @@ const yearUrl = urlParams.get('year');
                                         <label for="month" class="text-sm font-medium text-gray-700">Mês</label>
                                         <select name="month" id="month">
                                             <option value="">Selecione um...</option>
-                                            <option value="01" :selected="(monthUrl === undefined && currentMonth == 1) || (monthUrl == 1)">Janeiro</option>
-                                            <option value="02" :selected="(monthUrl === undefined && currentMonth == 2) || (monthUrl == 2)">Fevereiro</option>
-                                            <option value="03" :selected="(monthUrl === undefined && currentMonth == 3) || (monthUrl == 3)">Março</option>
-                                            <option value="04" :selected="(monthUrl === undefined && currentMonth == 4) || (monthUrl == 4)">Abril</option>
-                                            <option value="05" :selected="(monthUrl === undefined && currentMonth == 5) || (monthUrl == 5)">Maio</option>
-                                            <option value="06" :selected="(monthUrl === undefined && currentMonth == 6) || (monthUrl == 6)">Junho</option>
-                                            <option value="07" :selected="(monthUrl === undefined && currentMonth == 7) || (monthUrl == 7)">Julho</option>
-                                            <option value="08" :selected="(monthUrl === undefined && currentMonth == 8) || (monthUrl == 8)">Agosto</option>
-                                            <option value="09" :selected="(monthUrl === undefined && currentMonth == 9) || (monthUrl == 9)">Setembro</option>
-                                            <option value="10" :selected="(monthUrl === undefined && currentMonth == 10) || (monthUrl == 10)">Outubro</option>
-                                            <option value="11" :selected="(monthUrl === undefined && currentMonth == 11) || (monthUrl == 11)">Novembro</option>
-                                            <option value="12" :selected="(monthUrl === undefined && currentMonth == 12) || (monthUrl == 12)">Dezembro</option>
+                                            <option class="uppercase" v-for="month in months" :selected="(monthUrl === null && currentMonth == month) || (monthUrl == month)" :value="month">
+                                                {{ capitalizeFirstLetter( new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date(2021, month - 1, 1)) ) }}
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="flex flex-col ml-2 mr-2">
                                         <label for="year" class="text-sm font-medium text-gray-700">Ano</label>
                                         <select name="year" id="year">
                                             <option value="">Selecione um...</option>
-                                            <option v-for="year in years" :selected="(yearUrl === undefined && currentYear == year) || (yearUrl == year)">{{ year }}</option>
+                                            <option v-for="year in years" :selected="(yearUrl === null && currentYear == year) || (yearUrl == year)">{{ year }}</option>
                                         </select>
                                     </div>
                                     <!-- submit -->
