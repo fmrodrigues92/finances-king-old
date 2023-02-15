@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountTransactionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
+
+    Route::get('/account/{account_id}/transactions', [AccountTransactionController::class, 'index'])->name('account.transactions.index');
 });
 
 require __DIR__.'/auth.php';
