@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountTransactionController;
+use App\Http\Controllers\CreditCardController;
+use App\Http\Controllers\CreditCardTransactionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -32,13 +34,17 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
-
     Route::get('/account/{account_id}/transactions', [AccountTransactionController::class, 'index'])->name('account.transactions.index');
+
+    Route::get('/credit-cards', [CreditCardController::class, 'index'])->name('credit-cards.index');
+    Route::get('/credit-card/{credit_card_id}/transactions', [CreditCardTransactionController::class, 'index'])->name('credit-card.transactions.index');
+
 });
 
 require __DIR__.'/auth.php';
