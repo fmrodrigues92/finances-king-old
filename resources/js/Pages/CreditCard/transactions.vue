@@ -2,9 +2,12 @@
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
     import { Head } from '@inertiajs/vue3';
+    import { router } from '@inertiajs/vue3';
 
-    import { LineChart } from 'vue-chart-3';
+    import axios from 'axios';
+
     import { Chart, registerables } from "chart.js";
+    import { LineChart } from 'vue-chart-3';
     Chart.register(...registerables);
 
     const props = defineProps({
@@ -15,26 +18,23 @@
         limit_used: Array
     });
 
-    //get days from backend
-    const days = props.days;
-    const credit_card = props.credit_card;
-    const limit_used = props.limit_used;
+    //capitalize first letter
+    const capitalizeFirstLetter = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
 
-    //array with credit card limit same length of days
-    const limit = Array.from({ length: days.length }, (v, k) => credit_card.limit);
-
-    //array of transactions amount
-    const transactionsAmount = props.transactions.map((transaction) => transaction.amount);
+    //====================
 
     const testData = {
       datasets: [
         {
           label: 'Gastos',
-          data: limit_used,
+          data: props.limit_used,
           backgroundColor: '#77CEFF',
         }
       ],
     };
+
 
     //options
     const options = {
@@ -47,8 +47,8 @@
       },
     };
 
-
-
+    //====================
+    //====================
 
     //array from 2022 to 2050
     const years = Array.from({ length: 10 }, (v, k) => k + 2022);
@@ -56,6 +56,7 @@
     //array from jan to dec
     const months = Array.from({ length: 12 }, (v, k) => k + 1);
 
+    //====================
 
     //current mount
     const currentMonth = new Date().getMonth() + 1;
@@ -63,12 +64,6 @@
     //current year
     const currentYear = new Date().getFullYear();
 
-    //capitalize first letter
-    const capitalizeFirstLetter = (string) => {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
-    //====================
     //====================
 
     //get all url params
@@ -79,6 +74,93 @@
 
     //current year params in url
     const yearUrl = urlParams.get('year');
+
+    //====================
+    //====================
+
+    const refreshData = (response) => {
+
+        router.get(route('credit-card.transactions.index', [props.credit_card.id]) + '?month=' + (monthUrl ?? currentMonth) + '&year=' + (yearUrl ?? currentYear));
+    }
+    //====================
+    const toAdd = () => {
+        //push new transaction prepend
+        props.transactions.unshift({
+            id: null,
+            name: '',
+            amount: 0,
+            date_in: '',
+            date_out: '',
+            edit: true,
+        });
+    }
+
+    const toEdit = (transaction) => {
+        transaction.edit = true;
+    }
+    //====================
+    const toCancel = (transaction) => {
+        if(transaction.id === null) {
+            props.transactions.shift();
+        } else {
+            transaction.edit = false;
+        }
+    }
+    //====================
+    const toSave = (transaction) => {
+
+        if(transaction.id === null) {
+
+            //call api to save
+            axios.post(route('credit-card.transactions.store', [props.credit_card.id]) + '?month=' + (monthUrl ?? currentMonth) + '&year=' + (yearUrl ?? currentYear),
+            {
+                name: transaction.name,
+                amount: transaction.amount,
+                date_in: transaction.date_in,
+                date_out: transaction.date_out,
+            }).then(response => {
+                transaction.edit = false;
+                refreshData(response);
+            });
+
+
+        } else {
+
+            //call api to save
+            axios.put(
+                route('credit-card.transactions.update', [props.credit_card.id, transaction.id]) + '?month=' + (monthUrl ?? currentMonth) + '&year=' + (yearUrl ?? currentYear),
+                {
+                    name: transaction.name,
+                    amount: transaction.amount,
+                    date_in: transaction.date_in,
+                    date_out: transaction.date_out,
+                }
+            ).then(response => {
+                transaction.edit = false;
+                refreshData(response);
+            });
+
+        }
+
+    }
+
+    const toDelete = (transaction) => {
+
+        //confirm
+        if(!confirm('Tem certeza que deseja excluir?')) {
+            return;
+        }
+
+        //call api to delete
+        axios.delete(
+            route('credit-card.transactions.destroy', [props.credit_card.id, transaction.id]) + '?month=' + (monthUrl ?? currentMonth) + '&year=' + (yearUrl ?? currentYear)
+        ).then(response => {
+            refreshData(response);
+        });
+
+        //remove from array
+        props.transactions.splice(props.transactions.indexOf(transaction), 1);
+    }
 
 </script>
 
@@ -142,27 +224,57 @@
                         <hr class="mb-4 mt-4" />
 
                         <div>
-                            <a href="#" class="float-right px-5 py-2 text-sm bg-zinc-600 text-white hover:bg-zinc-700 rounded-lg transition duration-100 ease-in-out">Adicionar Transação</a>
+                            <a href="javascript:void(0)" class="float-right px-5 py-2 text-sm bg-zinc-600 text-white hover:bg-zinc-700 rounded-lg transition duration-100 ease-in-out" @click="toAdd()">Adicionar Transação</a>
                         </div>
 
                         <div class="min-w-full flex flex-col mt-6 overflow-x-auto">
                             <table class="table-auto" >
                                 <thead>
                                     <tr class="bg-zinc-700 text-white">
-                                        <th class="text-sm font-medium px-6 py-4 text-left">#</th>
-                                        <th class="text-sm font-medium px-6 py-4 text-left">Nome</th>
-                                        <th class="text-sm font-medium px-6 py-4 text-left">Valor</th>
-                                        <th class="text-sm font-medium px-6 py-4 text-left">Data de Entrada</th>
-                                        <th class="text-sm font-medium px-6 py-4 text-left">Data de Cancelamento</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border">#</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border">Nome</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border">Valor</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border">Data de Entrada</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border">Data de Cancelamento</th>
+                                        <th class="text-sm font-medium px-6 py-4 text-left border text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody >
-                                    <tr class="border-t border-slate-300 " v-for="transaction in transactions">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium w-10">{{ transaction.id }}</td>
-                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">{{ transaction.name }}</td>
-                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">{{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount) }}</td>
-                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">{{ transaction.date_in }}</td>
-                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">{{ transaction.date_out ?? '-' }}</td>
+                                    <tr class="border-t border-slate-300 " v-for="(transaction, i) in props.transactions">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium w-10">
+                                            <span v-if="transaction.edit != false">-</span>
+                                            <span v-else>{{ transaction.id }}</span>
+                                        </td>
+                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">
+                                            <input v-if="transaction.edit != false" type="text" v-model="transaction.name" placeholder="Nome" />
+                                            <span v-else>{{ transaction.name }}</span>
+                                        </td>
+                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">
+                                            <input v-if="transaction.edit != false" type="number" step="0.01" v-model="transaction.amount" />
+                                            <span v-else>{{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount) }}</span>
+                                        </td>
+                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">
+                                            <input v-if="transaction.edit != false" type="date" v-model="transaction.date_in"  />
+                                            <span v-else>{{ transaction.date_in }}</span>
+                                        </td>
+                                        <td class="text-sm font-light px-6 py-4 whitespace-nowrap">
+                                            <div v-if="transaction.edit != false">
+                                                <div class="flex flex-row">
+                                                    <input type="date" v-model="transaction.date_out"  />
+                                                </div>
+                                            </div>
+                                            <span v-else>{{ transaction.date_out ?? '-' }}</span>
+                                        </td>
+                                        <td  class="w-[53px]">
+                                            <div v-if="transaction.edit == true" class="flex justify-center flex-row">
+                                                <button  class="align-center py-2 px-2 bg-green-700 hover:bg-green-800 text-white rounded-md" @click="toSave(transaction)">Salvar</button>
+                                                <button  class="align-center py-2 px-2 ml-1 bg-red-700 hover:bg-red-800 text-white rounded-md" @click="toCancel(transaction)">Cancelar</button>
+                                            </div>
+                                            <div v-else class="flex justify-center flex-row">
+                                                <button class="align-center py-1 px-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md" @click="toEdit(transaction)">Editar</button>
+                                                <button class="align-center py-1 px-2 ml-1 bg-red-600 hover:bg-red-700 text-white rounded-md" @click="toDelete(transaction)">Apagar</button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

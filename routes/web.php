@@ -43,7 +43,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/{account_id}/transactions', [AccountTransactionController::class, 'index'])->name('account.transactions.index');
 
     Route::get('/credit-cards', [CreditCardController::class, 'index'])->name('credit-cards.index');
+
     Route::get('/credit-card/{credit_card_id}/transactions', [CreditCardTransactionController::class, 'index'])->name('credit-card.transactions.index');
+    Route::post('/credit-card/{credit_card_id}/transactions', [CreditCardTransactionController::class, 'store'])->name('credit-card.transactions.store');
+    Route::put('/credit-card/{credit_card_id}/transactions/{credit_card_transaction_id}', [CreditCardTransactionController::class, 'update'])->name('credit-card.transactions.update');
+    Route::delete('/credit-card/{credit_card_id}/transactions/{credit_card_transaction_id}', [CreditCardTransactionController::class, 'destroy'])->name('credit-card.transactions.destroy');
 
 });
 
