@@ -18,6 +18,16 @@ class CreditCardTransaction extends Model
         'date_out',
     ];
 
+    //appends field
+    protected $appends = [
+        'edit',
+    ];
+
+    public function getEditAttribute()
+    {
+        return false;
+    }
+
     public function creditCard()
     {
         return $this->belongsTo(CreditCard::class);
@@ -32,4 +42,5 @@ class CreditCardTransaction extends Model
     {
         return $this->belongsTo(CreditCardTransaction::class, 'installment_of_credit_card_transaction_id');
     }
+
 }
